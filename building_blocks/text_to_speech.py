@@ -42,7 +42,7 @@ def play_stream(audio_stream, use_ffmpeg=True):
     player_process.wait()
 
 def send_tts_request(text):
-    DEEPGRAM_URL = f"https://api.beta.deepgram.com/v1/speak?model={MODEL_NAME}&performance=some&encoding=linear16&sample_rate=24000"
+    DEEPGRAM_URL = f"https://api.deepgram.com/v1/speak?model={MODEL_NAME}"
     
     headers = {
         "Authorization": f"Token {DG_API_KEY}",
