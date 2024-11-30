@@ -16,7 +16,6 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-from langchain_core.chains import RunnableSequence
 from langchain.chains import LLMChain
 
 from deepgram import (
@@ -47,8 +46,9 @@ class LanguageModelProcessor:
             HumanMessagePromptTemplate.from_template("{text}")
         ])
 
-        self.conversation = RunnableSequence(
-            steps=[self.prompt, self.llm],
+        self.conversation = LLMChain(
+            llm=self.llm,
+            prompt=self.prompt,
             memory=self.memory
         )
 
@@ -68,9 +68,8 @@ class LanguageModelProcessor:
         return response['text']
 
 class TextToSpeech:
-    # Set your Deepgram API Key and desired voice model
     DG_API_KEY = os.getenv("DEEPGRAM_API_KEY")
-    MODEL_NAME = "aura-helios-en"  # Example model name, change as needed
+    MODEL_NAME = "aura-helios-en"
 
     @staticmethod
     def is_installed(lib_name: str) -> bool:
@@ -98,22 +97,25 @@ class TextToSpeech:
             stderr=subprocess.DEVNULL,
         )
 
-        start_time = time.time()  # Record the time before sending the request
-        first_byte_time = None  # Initialize a variable to store the time when the first byte is received
+        start_time = time.time()
+        first_byte_time = None
 
         with requests.post(DEEPGRAM_URL, stream=True, headers=headers, json=payload) as r:
+            # Capture the entire audio content first
+            audio_data = b""
             for chunk in r.iter_content(chunk_size=1024):
                 if chunk:
-                    if first_byte_time is None:  # Check if this is the first chunk received
-                        first_byte_time = time.time()  # Record the time when the first byte is received
-                        ttfb = int((first_byte_time - start_time)*1000)  # Calculate the time to first byte
+                    if first_byte_time is None:
+                        first_byte_time = time.time()
+                        ttfb = int((first_byte_time - start_time) * 1000)
                         print(f"TTS Time to First Byte (TTFB): {ttfb}ms\n")
                     player_process.stdin.write(chunk)
                     player_process.stdin.flush()
+                    audio_data += chunk  # Store the chunk in audio_data
 
         if player_process.stdin:
             player_process.stdin.close()
-        player_process.wait()
+        player_process.wait()        
 
 class TranscriptCollector:
     def __init__(self):
@@ -138,7 +140,7 @@ async def get_transcript(callback):
         config = DeepgramClientOptions(options={"keepalive": "true"})
         deepgram: DeepgramClient = DeepgramClient("", config)
 
-        dg_connection = deepgram.listen.asyncwebsocket.v("1")
+        dg_connection = deepgram.listen.asynclive.v("1")
         print ("Listening...")
 
         async def on_message(self, result, **kwargs):
@@ -198,20 +200,17 @@ class ConversationManager:
         def handle_full_sentence(full_sentence):
             self.transcription_response = full_sentence
 
-        # Loop indefinitely until "goodbye" is detected
         while True:
             await get_transcript(handle_full_sentence)
-            
-            # Check for "goodbye" to exit the loop
+
             if "goodbye" in self.transcription_response.lower():
                 break
-            
+
             llm_response = self.llm.process(self.transcription_response)
 
             tts = TextToSpeech()
             tts.speak(llm_response)
 
-            # Reset transcription_response for the next loop iteration
             self.transcription_response = ""
 
 if __name__ == "__main__":

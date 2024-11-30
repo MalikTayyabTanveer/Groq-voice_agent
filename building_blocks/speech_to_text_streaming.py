@@ -28,8 +28,9 @@ transcript_collector = TranscriptCollector()
 
 async def get_transcript():
     try:
-        config = DeepgramClientOptions(options={"keepalive": "true"})
-        deepgram: DeepgramClient = DeepgramClient("", config)
+        #config = DeepgramClientOptions(options={"keepalive": "true"})
+        #deepgram: DeepgramClient = DeepgramClient("", config)
+        deepgram: DeepgramClient = DeepgramClient()
 
         dg_connection = deepgram.listen.asynclive.v("1")
 
