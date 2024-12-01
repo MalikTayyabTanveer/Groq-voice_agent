@@ -152,24 +152,22 @@ class ConversationManager:
         self.transcription_response = ""
         self.llm = LanguageModelProcessor()
 
-
     async def process_voice(self, audio_file: UploadFile):
         self.transcription_response = await transcribe_audio(audio_file)
         llm_response = self.llm.process(self.transcription_response)
-
         tts = TextToSpeech()
         audio_output = tts.speak(llm_response)
-        return llm_response, audio_output
+        return self.transcription_response, llm_response, audio_output
 
-# Create an instance of the ConversationManager
 conversation_manager = ConversationManager()
 
 @app.post("/process_voice/")
 async def process_voice(audio_file: UploadFile = File(...)):
-    """Process voice input and return voice output"""
-    llm_response, audio_output = await conversation_manager.process_voice(audio_file)
+    """Process voice input and return transcription, voice output, and LLM response"""
+    transcription, llm_response, audio_output = await conversation_manager.process_voice(audio_file)
     audio_base64 = base64.b64encode(audio_output).decode('utf-8')
     return {
+        "User": transcription,
         "llm_response": llm_response,
         "audio_file": audio_base64  # This will be a base64 encoded string
     }
