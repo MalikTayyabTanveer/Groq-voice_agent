@@ -33,7 +33,7 @@ app = FastAPI()
 
 class LanguageModelProcessor:
     def __init__(self):
-        self.llm = ChatGroq(temperature=0, model_name="mixtral-8x7b-32768", groq_api_key=os.getenv("GROQ_API_KEY"))
+        self.llm = ChatGroq(temperature=0, model_name="llama3-8b-8192", groq_api_key=os.getenv("GROQ_API_KEY"))
         # self.llm = ChatOpenAI(temperature=0, model_name="gpt-4-0125-preview", openai_api_key=os.getenv("OPENAI_API_KEY"))
         # self.llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-0125", openai_api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -73,7 +73,7 @@ class LanguageModelProcessor:
 class TextToSpeech:
     # Set your Deepgram API Key and desired voice model
     DG_API_KEY = os.getenv("DEEPGRAM_API_KEY")
-    MODEL_NAME = "aura-helios-en"  # Example model name, change as needed
+    MODEL_NAME = "aura-athena-en"  # Example model name, change as needed
 
     @staticmethod
     def is_installed(lib_name: str) -> bool:
