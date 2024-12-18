@@ -85,7 +85,7 @@ class AvatarGeneration:
         payload = {
             "ttsAPIKey": self.tts_api_key,
             "simliAPIKey": self.simli_api_key,
-            "faceId": "tmp9i8bbq7c",  # Placeholder faceId, adjust as needed
+            "faceId": "743a34ba-435e-4c38-ac2b-c8b91d58a07e",  # Placeholder faceId, adjust as needed
             "requestBody": {
                 "audioProvider": "ElevenLabs",
                 "text": text,
